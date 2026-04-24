@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+            background-color: #ffffff;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header-box {
+            border-bottom: 3px solid #1a5276;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        h1 { color: #1a5276; font-size: 22pt; margin-bottom: 5px; }
+        h2 { color: #2471a3; font-size: 16pt; border-left: 5px solid #2471a3; padding-left: 10px; margin-top: 25px; }
+        h3 { color: #2e86c1; font-size: 13pt; }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .info-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .code-block {
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10pt;
+            white-space: pre-wrap;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .step-box {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #1a5276;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-box">
+        <h1>Assigment: Cisco VoIP Network Configuration</h1>
+        <p>Lab Topic: Basic Voice over IP (VoIP) Implementation</p>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td><strong>Course Name:</strong> Computer Networking / System Admin</td>
+            <td><strong>Date:</strong> April 24, 2026</td>
+        </tr>
+        <tr>
+            <td><strong>Submitted By:</strong> Md Ashikur Rahman</td>
+            <td><strong>Topic:</strong> Router & Switch Configuration</td>
+        </tr>
+    </table>
+
+    <h2>১. উদ্দেশ্য (Objective)</h2>
+    <p>এই ল্যাবের প্রধান উদ্দেশ্য হলো একটি নেটওয়ার্কে সিসকো আইপি ফোন (IP Phone) কনফিগার করা, VLAN তৈরি করা এবং রাউটারের মাধ্যমে টেলিফোনি সার্ভিস (Telephony Service) প্রদান করা।</p>
+
+    <h2>২. ব্যবহৃত ডিভাইসসমূহ (Required Devices)</h2>
+    <ul>
+        <li>১টি Cisco 2811 Router</li>
+        <li>১টি Cisco 2960 Switch</li>
+        <li>৪টি Cisco 7960 IP Phones</li>
+        <li>Straight-through Cables</li>
+    </ul>
+
+    <h2>৩. কনফিগারেশন ধাপসমূহ (Step-by-Step Configuration)</h2>
+    
+    <div class="step-box">
+        <h3>ধাপ-১: সুইচ কনফিগারেশন (VLAN Setup)</h3>
+        <p>ভয়েস ট্রাফিককে ডাটা ট্রাফিক থেকে আলাদা রাখার জন্য VLAN 10 তৈরি করা হয়েছে।</p>
+        <div class="code-block">
+Switch(config)# vlan 10
+Switch(config-vlan)# name VOICE
+Switch(config)# interface range fa0/1-6
+Switch(config-if-range)# switchport mode access
+Switch(config-if-range)# switchport voice vlan 10
+        </div>
+    </div>
+
+    <div class="step-box">
+        <h3>ধাপ-২: রাউটার ইন্টারফেস ও DHCP সেটআপ</h3>
+        <p>আইপি ফোনগুলো স্বয়ংক্রিয়ভাবে আইপি অ্যাড্রেস পাওয়ার জন্য DHCP পুল তৈরি করা হয়েছে।</p>
+        <div class="code-block">
+Router(config)# interface fa0/0.10
+Router(config-subif)# encapsulation dot1Q 10
+Router(config-subif)# ip address 192.168.10.1 255.255.255.0
+Router(config)# ip dhcp pool VOICE_POOL
+Router(dhcp-config)# network 192.168.10.0 255.255.255.0
+Router(dhcp-config)# default-router 192.168.10.1
+Router(dhcp-config)# option 150 ip 192.168.10.1
+        </div>
+    </div>
+
+    <div class="step-box">
+        <h3>ধাপ-৩: টেলিফোনি সার্ভিস (Telephony Services)</h3>
+        <p>রাউটারে ভয়েস কল কন্ট্রোল করার জন্য সার্ভিস চালু করা হয়েছে।</p>
+        <div class="code-block">
+Router(config)# telephony-service
+Router(config-telephony)# max-dn 5
+Router(config-telephony)# max-ephones 5
+Router(config-telephony)# ip source-address 192.168.10.1 port 2000
+Router(config-telephony)# auto assign 1 to 5
+        </div>
+    </div>
+
+    <div class="step-box">
+        <h3>ধাপ-৪: ফোন নম্বর বরাদ্দ (Directory Numbers)</h3>
+        <p>প্রতিটি ফোনের জন্য এক্সটেনশন নম্বর সেট করা হয়েছে।</p>
+        <div class="code-block">
+Router(config)# ephone-dn 1
+Router(config-ephone-dn)# number 101
+Router(config)# ephone-dn 2
+Router(config-ephone-dn)# number 102
+        </div>
+    </div>
+
+    <h2>৪. ফলাফল ও পর্যবেক্ষণ (Result & Observation)</h2>
+    <p>সফলভাবে কনফিগারেশন শেষ করার পর প্রতিটি আইপি ফোন একটি ইউনিক আইপি এবং ডিরেক্টরি নম্বর পেয়েছে। এক ফোন থেকে অন্য ফোনে সফলভাবে কল করা সম্ভব হয়েছে এবং সংযোগটি স্থিতিশীল ছিল।</p>
+
+    <div style="margin-top: 50px;">
+        <p><img src="../resized(1).jpg" alt=""><br>স্বাক্ষর</p>
+    </div>
+</body>
+</html>
